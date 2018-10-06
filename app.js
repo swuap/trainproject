@@ -22,6 +22,7 @@ var frequency = "";
 var arrival = "";
 var minutes = 0
 
+// This is an event handler that grabs the values in the input fields, stores them in variables, then "pushes" it to firebase
   $(document).on("click", "#submit", function() {
       
       name = $("#name-input").val().trim();
@@ -39,15 +40,33 @@ var minutes = 0
     console.log(name);
     });
     
-
+// This is an event handler that looks for new data entries. When data is entered, it uses jQuery to update the bootstrap table from firebase
     database.ref().on("child_added", function(childSnapshot) {
-      console.log(childSnapshot.val())
-     $("#trains").append(
+      // time variables and functioanality
+      var newName = childSnapshot.val().name;
+      var newDestination = childSnapshot.val().destination;
+      var newFirstTrain = childSnapshot.val().firstTrain;
+      var newFreq = childSnapshot.val().frequency;
+
+      var startTimeConverted = moment(newFirstTrain, "hh:mm").subtract(1, "years");
+
+      var currentTime = moment();
+     
+      var diffTime = moment().diff(moment(startTimeConverted), "minutes");
+     
+      var tRemainder = diffTime % newFreq;
+
+      var tMinutesTillTrain = newFreq - tRemainder;
+
+      var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+      var catchTrain = moment(nextTrain).format("HH:mm");
+     
+      $("#trains").append(
        "<tr><th scope='row'>" + childSnapshot.val().name + "</th>" +
        "<td>" + childSnapshot.val().destination + "</td>" +
        "<td>" + childSnapshot.val().frequency + "</td>" +
-       "<td>" + "Next arrival:TBD" + "</td>" +
-       "<td>" + "Minutes away:TBD" + "</td>" +
+       "<td>" + catchTrain + "</td>" +
+       "<td>" + tMinutesTillTrain + "</td>" +
        "</tr>"
       );
   });
